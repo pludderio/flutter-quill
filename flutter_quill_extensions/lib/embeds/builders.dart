@@ -26,12 +26,14 @@ class ImageEmbedBuilder implements EmbedBuilder {
     base.Embed node,
     bool readOnly,
   ) {
-    assert(!kIsWeb, 'Please provide image EmbedBuilder for Web');
+    //assert(!kIsWeb, 'Please provide image EmbedBuilder for Web');
 
     var image;
     final imageUrl = standardizeImageUrl(node.value.data);
     Tuple2<double?, double?>? _widthHeight;
     final style = node.style.attributes['style'];
+    final widthAttribute = node.style.attributes['width'];
+    double? width;
     if (base.isMobile() && style != null) {
       final _attrs = base.parseKeyValuePairs(style.value.toString(), {
         Attribute.mobileWidth,
@@ -44,21 +46,32 @@ class ImageEmbedBuilder implements EmbedBuilder {
             _attrs[Attribute.mobileWidth] != null &&
                 _attrs[Attribute.mobileHeight] != null,
             'mobileWidth and mobileHeight must be specified');
-        final w = double.parse(_attrs[Attribute.mobileWidth]!);
-        final h = double.parse(_attrs[Attribute.mobileHeight]!);
-        _widthHeight = Tuple2(w, h);
+        final mWidth = double.parse(_attrs[Attribute.mobileWidth]!);
+        final mHeight = double.parse(_attrs[Attribute.mobileHeight]!);
+        final width = double.parse(_attrs[Attribute.mobileWidth]!);
+        final height = double.parse(_attrs[Attribute.mobileHeight]!);
+        _widthHeight = Tuple2(mWidth, mHeight);
         final m = _attrs[Attribute.mobileMargin] == null
             ? 0.0
             : double.parse(_attrs[Attribute.mobileMargin]!);
         final a = base.getAlignment(_attrs[Attribute.mobileAlignment]);
         image = Padding(
             padding: EdgeInsets.all(m),
-            child: imageByUrl(imageUrl, width: w, height: h, alignment: a));
+            child: imageByUrl(imageUrl, width: mWidth, height: mHeight, alignment: a));
       }
+    }
+    else if(widthAttribute != null){
+        width = double.parse(widthAttribute.value.toString());
+        print("current width is: "+ width.toString());
     }
 
     if (_widthHeight == null) {
-      image = imageByUrl(imageUrl);
+
+      if(width == null){
+        image = imageByUrl(imageUrl);
+      }else{
+        image = imageByUrl(imageUrl, width: width, height: width);
+      }
       _widthHeight = Tuple2((image as Image).width, image.height);
     }
 
